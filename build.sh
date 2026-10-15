@@ -6,15 +6,20 @@ cd "$(dirname "$0")"
 APP=.build/TheeJ.app
 VERSION=$(sed -n 's/^let appVersion = "\(.*\)"$/\1/p' Sources/TheeJ/Version.swift)
 
-swift test
-# One universal binary, so the same app runs on Apple Silicon and Intel. Package.swift sets macOS 14 as the oldest.
-UNIVERSAL=(-c release --arch arm64 --arch x86_64)
-swift build "${UNIVERSAL[@]}"
+# --fast, for run.sh: a debug build for this Mac only, without the tests. Otherwise one universal binary, so the
+# same app runs on Apple Silicon and Intel. Package.swift sets macOS 14 as the oldest.
+if [ "$1" = "--fast" ]; then
+    FLAGS=()
+else
+    swift test
+    FLAGS=(-c release --arch arm64 --arch x86_64)
+fi
+swift build "${FLAGS[@]}"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # A new file rather than cp over the old one: macOS remembers the old binary's signature for that
 # file, and kills the new one the moment it runs (Killed: 9, when making the icons just below).
 rm -f "$APP/Contents/MacOS/TheeJ"
-cp "$(swift build "${UNIVERSAL[@]}" --show-bin-path)/TheeJ" "$APP/Contents/MacOS/"
+cp "$(swift build "${FLAGS[@]}" --show-bin-path)/TheeJ" "$APP/Contents/MacOS/"
 # iconutil packs every file in the folder, so sizes left over from older builds would ride along.
 rm -rf .build/AppIcon.iconset
 "$APP/Contents/MacOS/TheeJ" --iconset .build/AppIcon.iconset

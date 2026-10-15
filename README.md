@@ -379,7 +379,8 @@ brew install m1ddc
 ./run.sh
 ```
 
-`run.sh` quits any running TheeJ, builds with `build.sh` and runs the new build in the terminal,
+`run.sh` quits any running TheeJ, builds with `build.sh --fast` (a debug build for this Mac, without
+the tests) and runs the new build in the terminal,
 where it prints live slider values so you can see which physical slider is which index. Its first
 run also turns on the repository's git hook, which refuses commits made directly on `main`.
 `build.sh` runs the tests (`swift test`), then produces `.build/TheeJ.app`, a universal app for
