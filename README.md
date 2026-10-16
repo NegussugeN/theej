@@ -107,7 +107,7 @@ You need:
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/theej-settings-general.png">
-    <img src="docs/screenshots/theej-settings-general-light.png" width="460" alt="Settings, General: m1ddc installed, a connected board with its gear, then the language, the menu bar icon and the profile list">
+    <img src="docs/screenshots/theej-settings-general-light.png" width="460" alt="Settings, General: a connected board with its gear, then App with the language and m1ddc, and Menu bar with the icon options and the profile list">
   </picture>
 </p>
 <p align="center"><sub>Settings, General: your boards, each on or off with its gear, then the language and the menu bar</sub></p>
@@ -264,9 +264,10 @@ asks for a name, the type (DIY (Arduino), SMC-Mixer or Other MIDI), the device i
 DIY board or another MIDI controller, its baud rate and how many knobs, faders and buttons it has;
 Next then calibrates it. The gear holds the board's name, its status with Reconnect, the device and,
 for a DIY board, its baud rate and **Speed**, for an SMC-Mixer its **Button lights**, then the board's
-**Next profile** and **Previous profile** shortcuts, with Remove board and Calibrate. Its Save applies at once. Under the boards come
-**Language**, **Hide menu bar icon**, **Show profile name**, **Icon** (Mixer, Dial or App icon) and
-**Profile list in tray menu**, which puts the profiles in the menu.
+**Next profile** and **Previous profile** shortcuts, with Remove board and Calibrate. Its Save applies at once. Under the boards,
+**App** holds **Language** and, on Apple silicon, whether m1ddc is installed, with a button that
+installs it. **Menu bar** holds **Show icon**, **Show profile name**, **Profile list**, which puts the
+profiles in the menu, and **Icon** (Mixer, Dial or App icon).
 
 **Boards** shows one connected board at a time. Its toolbar picks the board and the profile you are
 editing, and its ⋯ menu edits the profile's name and shortcut, adds a profile, removes the one shown,
