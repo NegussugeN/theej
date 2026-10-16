@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "Poprzedni utwór",
         "action.screens_off": "Wyłącz ekrany",
         "action.sleep": "Uśpij",
+        "action.stop": "Zatrzymaj",
         "action.volume_down": "Ciszej",
         "action.volume_up": "Głośniej",
         "add.add": "Dodaj",

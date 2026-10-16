@@ -85,22 +85,25 @@ noise_reduction: default
     #expect(saved["shortcut"] == nil && (saved["buttons"] as? [String: [String]])?["3"]?.count == 3)
 }
 
-@Test func aWindowsProfileLeavesItsAppsAndKeysBehind() throws {
+// WeeJ's files from before it wrote its platform have none.
+@Test(arguments: ["", #""platform":"windows","#])
+func aWindowsProfileLeavesItsAppsAndKeysBehind(platform: String) throws {
     _ = english
     let weej = #"""
-        {"kind":"weej.profile","version":1,"type":"smc","profile":{"name":"Games","jobs":[
+        {"kind":"weej.profile","version":1,"type":"smc",\#(platform)"profile":{"name":"Games","jobs":[
           [{"kind":"master"},{"kind":"systemSounds"},{"kind":"master"}],
           [{"kind":"app","exe":"spotify.exe"},{"kind":"nightLight"}],
           [{"kind":"brightness","screen":0}],
           [{"kind":"brightness","screen":99}, 7]],
-        "buttons":{"144":["mute:0","open:C:\\Apps\\Steam.exe"],"174":["keys:2:65:A","media.playpause","disco"]}}}
+        "buttons":{"144":["mute:0","open:C:\\Apps\\Steam.exe"],"174":["keys:2:65:A","media.playpause","media.stop","disco"]}}}
         """#
     let smc = Board.make(id: "d1", name: "SMC", type: .smc, profileName: "Default")
     let (profile, skipped) = try #require(importedProfile(Data(weej.utf8), for: smc))
     #expect(profile.name == "Games" && profile.jobs.count == 16)
     #expect(profile.jobs[0] == [.master] && profile.jobs[1] == [.nightShift] && profile.jobs[2] == [.brightness(0)] && profile.jobs[3].isEmpty)
     #expect(profile.buttons == [noteButton(16): ["mute:0"], noteButton(46): ["media.playpause"]])
-    #expect(skipped == ["System sounds", "spotify.exe", "brightness", "M1: Open an app", "Previous bank: Press a shortcut"])
+    #expect(skipped == ["System sounds", "spotify.exe", "brightness", "M1: Open an app", "Previous bank: Press a shortcut",
+                        "Previous bank: Stop"])
 
     // From another type of board only the jobs come, by control.
     let desk = Board.make(id: "d2", name: "Desk", type: .diy, knobs: 2, buttons: 1, profileName: "Default")

@@ -283,7 +283,8 @@ the controls stay where they are. Draw or List sticks per board.
 **Export…** saves the profile shown to a file in WeeJ's format, so WeeJ reads it too. **Import…** adds
 a profile from such a file, or from deej's `config.yaml`. Jobs land on the same controls, and buttons
 only come from the same type of board. From Windows, apps and the buttons that open or close an app or
-press keys stay behind, since they name Windows programs and keys. From deej, master, mic and monitor
+press keys stay behind, since they name Windows programs and keys, as does Stop, which a Mac has no key
+for. From deej, master, mic and monitor
 brightness come in, each on the knob or fader that reads its slider, or on a MIDI board the one at its
 place. A line under the toolbar says what was left out.
 

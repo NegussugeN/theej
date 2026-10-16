@@ -118,6 +118,7 @@ func importedProfile(_ data: Data, for board: Board) -> (profile: Profile, skipp
 private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [String]) {
     var profile = board.newProfile(file.profile.name)
     var skipped: [String] = []
+    // TheeJ has always written "macos", so a file with no platform is WeeJ's, from before it wrote "windows".
     let mac = file.platform == "macos"
     for control in profile.jobs.indices {
         if mac, let jobs = file.theej {
@@ -141,8 +142,8 @@ private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [Str
     guard file.type == board.type.rawValue else { return (profile, skipped) }
     profile.buttons = file.profile.buttons
     guard !mac else { return (profile, skipped) }
-    // Another system names its apps and keys its own way.
-    let kinds = ["open:": "action.open_app", "close:": "action.close_app", "keys:": "action.keys"]
+    // Another system names its apps and keys its own way, and a Mac has no key that stops playing.
+    let kinds = ["open:": "action.open_app", "close:": "action.close_app", "keys:": "action.keys", "media.stop": "action.stop"]
     for key in profile.buttons.keys.sorted() {
         let name = board.control(ofKey: key).map(board.controlName) ?? String(key)
         for action in profile.buttons[key] ?? [] {

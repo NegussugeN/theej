@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "Faixa anterior",
         "action.screens_off": "Desligar as telas",
         "action.sleep": "Suspender",
+        "action.stop": "Parar",
         "action.volume_down": "Diminuir volume",
         "action.volume_up": "Aumentar volume",
         "add.add": "Adicionar",
