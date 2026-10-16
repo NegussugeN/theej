@@ -239,7 +239,7 @@ Clicking it opens Settings. Right-clicking it, or Control-clicking, opens a menu
 first, on by default, then a block for each board that is on, headed by its name and whether it is
 connected. Under the heading come the live value of every one of its jobs, one job per line in control
 order, an app's with its icon, then its profiles, with a check by the active one and each one's
-shortcut, and Calibrate, except on an SMC-Mixer. Then come Settings, Language and Reconnect, Launch at
+shortcut. Then come Settings and Language, Launch at
 login and Keep in Dock, About TheeJ, which opens the About tab of Settings, Check for updates… with
 Check automatically (daily, weekly by default, or never), and Quit TheeJ. Settings can leave the
 profiles out.
@@ -316,7 +316,7 @@ applied. A control given a new job, by Apply or by switching profiles, takes it 
 move it, so neither ever jumps the volume or a panel to wherever that control happens to sit.
 
 **Calibration** finds a DIY board's or another MIDI controller's controls. It opens after Add board,
-from the board's gear and from Calibrate in the menu, and on its own when a board connects with a
+from the board's gear, and on its own when a board connects with a
 control it hasn't found yet. An SMC-Mixer's controls are known, so it needs none.
 
 1. Turn every knob and fader to 0%, and press Next.
