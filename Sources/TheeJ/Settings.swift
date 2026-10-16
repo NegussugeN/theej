@@ -313,25 +313,37 @@ extension MenuBar: NSToolbarDelegate {
         icon.heightAnchor.constraint(equalToConstant: 96).isActive = true
         let name = NSTextField(labelWithString: appName)
         name.font = .boldSystemFont(ofSize: 16)
+        let madeBy = credit(tr("made_by"), "Zolfer Figueiredo", "https://zolfer.com/")
+        for case let view as NSControl in madeBy.views { view.font = .systemFont(ofSize: NSFont.smallSystemFontSize) }
         let version = NSTextField(labelWithString: tr("version", ["version": appVersion]))
-        version.textColor = .secondaryLabelColor
         let check = NSButton(title: tr("check"), target: self, action: #selector(checkNow))
         check.isEnabled = !checking && UpdateProgress.underway == nil
         checkButton = check
         let website = link(tr("website"), "https://theej.zolfer.com/")
-        let madeBy = credit(tr("made_by"), "zolfer.com", "https://zolfer.com/")
+        let liked = NSTextField(labelWithString: tr("liked"))
+        let coffee = NSButton(title: tr("coffee"), target: self, action: #selector(openLink))
+        coffee.toolTip = "https://buymeacoffee.com/zolfer"
         let windows = credit(tr("on_windows"), "WeeJ", "https://weej.zolfer.com/")
         let inspired = credit(tr("inspired_by"), "deej", "https://github.com/omriharel/deej")
+        let lines = [NSBox(), NSBox()]
+        for line in lines {
+            line.boxType = .separator
+            line.widthAnchor.constraint(equalToConstant: formWidth).isActive = true
+        }
         let footer = saveFooter()
         footer.widthAnchor.constraint(equalToConstant: formWidth).isActive = true
-        let page = NSStackView(views: [icon, name, version, check, website, madeBy, windows, inspired, footer])
+        let page = NSStackView(views: [icon, name, madeBy, version, check, lines[0], website, liked, coffee, lines[1],
+                                       windows, inspired, footer])
         page.orientation = .vertical
         page.alignment = .centerX
         page.spacing = 4
         page.setCustomSpacing(12, after: icon)
+        for view in [name, madeBy] { page.setCustomSpacing(10, after: view) }
         page.setCustomSpacing(16, after: version)
-        page.setCustomSpacing(16, after: check)
-        for line in [website, madeBy, windows] { page.setCustomSpacing(10, after: line) }
+        for view in [check, lines[0], coffee, lines[1]] { page.setCustomSpacing(16, after: view) }
+        page.setCustomSpacing(10, after: website)
+        page.setCustomSpacing(8, after: liked)
+        page.setCustomSpacing(10, after: windows)
         page.setCustomSpacing(24, after: inspired)
         page.edgeInsets = NSEdgeInsets(top: 24, left: 20, bottom: 20, right: 20)
         page.widthAnchor.constraint(equalToConstant: formWidth + 40).isActive = true  // as wide as General

@@ -12,5 +12,5 @@ fi
 # Before build.sh, which overwrites the binary the LaunchAgent runs.
 if pgrep -x TheeJ >/dev/null; then osascript -e 'quit app id "com.zolfer.theej"'; fi
 while pgrep -x TheeJ >/dev/null; do sleep 0.2; done
-./build.sh
+./build.sh --fast
 exec .build/TheeJ.app/Contents/MacOS/TheeJ "$@"

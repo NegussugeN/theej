@@ -379,7 +379,8 @@ brew install m1ddc
 ./run.sh
 ```
 
-`run.sh` quits any running TheeJ, builds with `build.sh` and runs the new build in the terminal,
+`run.sh` quits any running TheeJ, builds with `build.sh --fast` (a debug build for this Mac, without
+the tests) and runs the new build in the terminal,
 where it prints live slider values so you can see which physical slider is which index. Its first
 run also turns on the repository's git hook, which refuses commits made directly on `main`.
 `build.sh` runs the tests (`swift test`), then produces `.build/TheeJ.app`, a universal app for
@@ -404,8 +405,17 @@ restarted.
 in [Version.swift](Sources/TheeJ/Version.swift). The app and the DMG are signed with Developer ID,
 notarized and stapled, and the DMG is published as a GitHub release of the current commit, which
 must be pushed. Notarization needs a one-time `xcrun notarytool store-credentials bihan` with an App
-Store Connect API key, as the top of `release.sh` shows; BeeHan Brightness uses the same profile.
+Store Connect API key, as the top of `release.sh` shows; ClaudioStat uses the same profile.
 `./release.sh --url` also makes the permanent url.zolfer.com download link.
+
+Every push to `main` whose version isn't released yet is released by `.github/workflows/release.yml`. GitHub's Mac runs `./release.sh build`, then a self-hosted runner on the Mac that holds the Developer ID key runs `./release.sh sign`, so the key never leaves its keychain. A pull request that changes the release files runs only the build half. The runner, set up once on that Mac:
+
+1. On GitHub, open Settings > Actions > Runners > New self-hosted runner (macOS, ARM64), and download it into `~/www/actions-runner/theej` as that page shows.
+2. From a terminal where `gh` and Homebrew are on the PATH (the runner keeps that PATH), run `./config.sh --url https://github.com/zolferfigueiredo/theej --token <the token on that page> --labels release --name theej-mac --unattended`, then `./svc.sh install`. The runner then starts at login, and `~/www/actions-runner/run.sh` starts every runner in that folder.
+3. Under Settings > Actions > General > Fork pull request workflows, choose "Require approval for all external contributors", so a fork's pull request can't reach the runner.
+4. On the first release, let the runner control Finder, and let `codesign` and `notarytool` use the keychain.
+
+While that Mac is off or logged out, the sign job waits; Re-run failed jobs retries it with the same build.
 
 **CI** builds and tests every pull request on macOS, counting any compiler warning as an error. It also runs shellcheck on the scripts, and fails a pull request that changes the app without
 raising `appVersion` in `Sources/TheeJ/Version.swift`.
