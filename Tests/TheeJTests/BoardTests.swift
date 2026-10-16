@@ -79,7 +79,7 @@ private func defaults(_ name: String) -> UserDefaults {
 @Test func aBadValueDropsOnlyItself() throws {
     _ = english
     let saved = #"[{"id":"d1","name":"Desk","type":"diy","controls":[{"kind":"slider","input":0,"min":-5,"max":2000}],"#
-        + #""profiles":[{"name":"A","jobs":[[{"master":{}},{"systemSounds":{}}]],"#
+        + #""profiles":[{"name":"A","jobs":[[{"master":{}},{"discoBall":{}}]],"#
         + #""buttons":{"7":["media.next","pc.reboot","media.next"],"x":["media.next"],"300":["settings"],"8":"settings"}}],"#
         + #""profile":4,"speed":"warp","baudRate":-1},{"id":"d2","type":"stage-lights"},{"id":"d3","name":"Twin","type":"smc"}]"#
     let boards = try JSONDecoder().decode([Lossy<Board>].self, from: Data(saved.utf8)).compactMap(\.value)

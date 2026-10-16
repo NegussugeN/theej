@@ -1,5 +1,6 @@
 #if canImport(AppKit)
 import CoreAudio
+import Foundation
 
 // 'vmvc' is kAudioHardwareServiceDeviceProperty_VirtualMainVolume. Spelled as a FourCC so we
 // don't drag in the deprecated AudioHardwareService* symbols. Unlike per-channel 'volm' it
@@ -82,5 +83,12 @@ func setVolume(_ scalar: Float32, input: Bool = false) {
     if setScalar(dev, scope, virtualMainVolume, 0, scalar) { return }
     _ = setScalar(dev, scope, kAudioDevicePropertyVolumeScalar, 1, scalar)
     _ = setScalar(dev, scope, kAudioDevicePropertyVolumeScalar, 2, scalar)
+}
+
+// The Alert volume slider under Sound Effects in System Settings, which Core Audio has no property for.
+// Standard Additions' command runs in TheeJ itself, so no Automation permission is asked. Main thread only,
+// as NSAppleScript is, and about a hundredth of a second each.
+func setAlertVolume(_ scalar: Float32) {
+    NSAppleScript(source: "set volume alert volume \(percent(scalar))")?.executeAndReturnError(nil)
 }
 #endif

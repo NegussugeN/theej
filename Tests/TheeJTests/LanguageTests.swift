@@ -34,7 +34,8 @@ private func placeholders(_ text: String) -> Set<String> {
 @Test func jobNamesStayApartInEveryLanguage() {
     for language in Language.allCases {
         let short = ["short.builtin_display", "short.screen", "short.warmth", "short.builtin", "short.external"]
-        let names = short.map { tr($0, ["n": 1], in: language) } + ["job.master", "job.microphone"].map { tr($0, in: language) }
+        let names = short.map { tr($0, ["n": 1], in: language) }
+            + ["job.master", "job.microphone", "job.system_sounds"].map { tr($0, in: language) }
         #expect(Set(names).count == names.count, "\(language.rawValue): \(names)")
     }
 }
