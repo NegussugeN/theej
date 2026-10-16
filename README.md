@@ -274,8 +274,8 @@ DIY board or another MIDI controller, its baud rate and how many knobs, faders a
 Next then calibrates it. The gear holds the board's name, its status with Reconnect, the device and,
 for a DIY board, its baud rate and **Speed**, for an SMC-Mixer its **Button lights**, then the board's
 **Next profile** and **Previous profile** shortcuts, with Remove board and Calibrate. Its Save applies at once. Under the boards,
-**App** holds **Language** and, on Apple silicon, whether m1ddc is installed, with a button that
-installs it. **Menu bar** holds **Show icon**, **Show profile name**, **Profile list**, which puts the
+**App** holds **Language**, **Launch at login** (the same login item as the menu's, for the copy in
+Applications) and, on Apple silicon, whether m1ddc is installed, with a button that installs it. **Menu bar** holds **Show icon**, **Show profile name**, **Profile list**, which puts the
 profiles in the menu, and **Icon** (Mixer, Dial or App icon).
 
 **Boards** shows one connected board at a time. Its toolbar picks the board and the profile you are

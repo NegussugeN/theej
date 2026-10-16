@@ -36,6 +36,7 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
     let boardRows = NSStackView()
     let showName = NSSwitch()
     let showIcon = NSSwitch()  // on while the icon shows: setup.hideIcon the other way round
+    let launchAtLogin = NSSwitch()
     let showNameLabel = NSTextField(labelWithString: "")  // these three are dimmed with the icon hidden
     let showProfiles = NSSwitch()
     let profileListLabel = NSTextField(labelWithString: "")
