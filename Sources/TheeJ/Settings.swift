@@ -199,11 +199,11 @@ extension MenuBar: NSToolbarDelegate {
     func buildPages() {
         applyButtons = []
         boardsFooter = nil
-        for control: NSControl in [showName, hideIcon, iconPicker, showProfiles] {
+        for control: NSControl in [showIcon, showName, iconPicker, showProfiles] {
             control.target = self
             control.action = #selector(toggleOption)
         }
-        for toggle in [showName, hideIcon, showProfiles] { toggle.controlSize = .mini }
+        for toggle in [showIcon, showName, showProfiles] { toggle.controlSize = .mini }
         iconPicker.isBordered = false
         iconPicker.removeAllItems()
         for style in IconStyle.allCases {
@@ -222,17 +222,19 @@ extension MenuBar: NSToolbarDelegate {
         profileListLabel.stringValue = tr("profile_list")
         let appRows = NSStackView()
         let appGroup = group(appRows)
-        setRows(appRows, [row([label(tr("language"))], languagePicker),
-                          row([label(tr("hide_icon"), note: tr("hide_icon_note"))], hideIcon),
-                          row([showNameLabel], showName),
-                          row([iconLabel], iconPicker),
-                          row([profileListLabel], showProfiles)])
+        let m1ddc = isAppleSilicon ? [m1ddcRow()] : []  // m1ddc runs on Apple Silicon only
+        setRows(appRows, [row([label(tr("language"))], languagePicker)] + m1ddc)
+        let menuBarRows = NSStackView()
+        let menuBarGroup = group(menuBarRows)
+        setRows(menuBarRows, [row([label(tr("show_icon"), note: tr("hide_icon_note"))], showIcon),
+                              row([showNameLabel], showName),
+                              row([profileListLabel], showProfiles),
+                              row([iconLabel], iconPicker)])
         let boardsGroup = group(boardRows)
         let add = NSButton(title: tr("boards.add"), target: self, action: #selector(addBoard))
-        let m1ddc = isAppleSilicon ? [m1ddcGroup()] : []  // m1ddc runs on Apple Silicon only
-        let general = page(m1ddc + [header(tr("boards.title"), trailing: [add]), boardsGroup, header(tr("general.app")),
-                                    appGroup, saveFooter()])
-        for view in m1ddc + [boardsGroup, appGroup] { general.setCustomSpacing(24, after: view) }
+        let general = page([header(tr("boards.title"), trailing: [add]), boardsGroup, header(tr("general.app")), appGroup,
+                            header(tr("general.menu_bar")), menuBarGroup, saveFooter()])
+        for view in [boardsGroup, appGroup, menuBarGroup] { general.setCustomSpacing(24, after: view) }
         boardsPage.orientation = .vertical
         boardsPage.alignment = .leading
         boardsPage.spacing = 8
@@ -350,8 +352,8 @@ extension MenuBar: NSToolbarDelegate {
         return page
     }
 
-    // Whether m1ddc, which external screens need, is installed, with a button that installs it.
-    func m1ddcGroup() -> NSBox {
+    // App's row saying whether m1ddc, which external screens need, is installed, with a button that installs it.
+    func m1ddcRow() -> NSStackView {
         let site = link("github.com/waydabber/m1ddc", "https://github.com/waydabber/m1ddc")
         site.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         m1ddcSupport = NSStackView(views: [small(tr("m1ddc.support")), site])
@@ -368,11 +370,8 @@ extension MenuBar: NSToolbarDelegate {
         // As with a control's list, the row centres its text without keeping its padding round it.
         text.topAnchor.constraint(greaterThanOrEqualTo: row.topAnchor, constant: 8).isActive = true
         text.bottomAnchor.constraint(lessThanOrEqualTo: row.bottomAnchor, constant: -8).isActive = true
-        let rows = NSStackView()
-        let box = group(rows)
-        setRows(rows, [row])
         showM1ddc()
-        return box
+        return row
     }
 
     // Checked whenever Settings opens or is rebuilt, and by Refresh. A path found here also reaches
@@ -508,7 +507,7 @@ extension MenuBar: NSToolbarDelegate {
         setRows(boardRows, draft.boards.isEmpty ? [setupRow()] : draft.boards.map(boardRow))
         showName.state = draft.showName ? .on : .off
         showProfiles.state = draft.showProfiles ? .on : .off
-        hideIcon.state = draft.hideIcon ? .on : .off
+        showIcon.state = draft.hideIcon ? .off : .on
         iconPicker.selectItem(at: IconStyle.allCases.firstIndex(of: draft.icon) ?? 0)
         dimMenuBarOptions()
         reloadBoards()
@@ -619,7 +618,7 @@ extension MenuBar: NSToolbarDelegate {
     @objc func toggleOption() {
         draft.showName = showName.state == .on
         draft.showProfiles = showProfiles.state == .on
-        draft.hideIcon = hideIcon.state == .on
+        draft.hideIcon = showIcon.state == .off
         draft.icon = IconStyle.allCases[iconPicker.indexOfSelectedItem]
         dimMenuBarOptions()
     }
