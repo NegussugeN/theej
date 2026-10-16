@@ -164,12 +164,6 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
                     menu.addItem(mi)
                 }
             }
-            if board.type != .smc {
-                let calibrate = entry(tr("calibrate"), #selector(calibrateBoard), "", symbol: "wrench.and.screwdriver")
-                calibrate.representedObject = board.id
-                calibrate.isEnabled = connected
-                menu.addItem(calibrate)
-            }
             menu.addItem(.separator())
         }
         menu.addItem(entry(tr("settings"), #selector(openSettings), ","))
@@ -185,7 +179,6 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
         languageItem.image = NSImage(systemSymbolName: "globe", accessibilityDescription: nil)
         languageItem.submenu = languages
         menu.addItem(languageItem)
-        menu.addItem(entry(tr("reconnect"), #selector(reconnect), ""))
         menu.addItem(.separator())
         // Registering from anywhere else (a build folder) would point the login item at a bundle that disappears.
         let login = entry(tr("login"), #selector(toggleLogin), "")
@@ -368,15 +361,6 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
         let mixers = setup.boards.filter { $0.type == .smc }.count
         showHUD(first.lights.isEmpty ? "lightbulb.slash" : "lightbulb.fill", on: pointerDisplayID(), 0,
                 text: mixers > 1 && changed.count == 1 ? "\(first.name) · \(style)" : style)
-    }
-
-    @objc func reconnect() {
-        shared.requestReconnect(nil)
-        midi?.sync(reconnect: true)
-    }
-
-    @objc func calibrateBoard(_ sender: NSMenuItem) {
-        if let id = sender.representedObject as? String { startWizard(id) }
     }
 
     @objc func quit() {
