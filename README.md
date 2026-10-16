@@ -57,7 +57,7 @@ You need:
 
 ## Features
 
-- **One knob, several jobs.** The volume of your Mac, your mic or a single app, a screen's brightness or contrast, Night Shift, a keyboard backlight, screen zoom. Tick several, of any kind, and they all follow the knob or fader.
+- **One knob, several jobs.** The volume of your Mac, your mic, its alerts, a single app, the app in front or all the others, a screen's brightness or contrast, Night Shift, a keyboard backlight, screen zoom. Tick several, of any kind, and they all follow the knob or fader.
 - **Your board, drawn.** The Boards tab draws any board with its knobs and faders moving as you move the real ones, and what each one does under it. Click a control, or just move it, to tick its jobs beside the drawing, or switch to List to see every control at once.
 - **Any number of boards.** A deej board, an M-VAVE SMC-Mixer and other MIDI controllers side by side, each with its own profiles, shortcuts and calibration.
 - **The SMC-Mixer, ready to go.** Its 8 faders, 8 knobs and 43 buttons are known, over USB or Bluetooth, in DAW or CC mode. Settings draws it as it sits on your desk, and its M buttons light up while their fader is muted.
@@ -125,6 +125,8 @@ You need:
 - **Master volume**: the current output device, through CoreAudio.
 - **Microphone volume**: the input volume of the current input device, the same slider as in
   System Settings, Sound.
+- **System sounds**: the alert volume, the Alert volume slider in System Settings, Sound. TheeJ sets it
+  with AppleScript's own `set volume alert volume`, which needs no permission, once the knob settles.
 - **An app's volume** (macOS 14.2 or later): an app picked under Apps, from silent at the bottom of
   the knob to the app's own level at the top. macOS has no volume per app, so TheeJ captures the
   app's sound with a Core Audio process tap and plays it back at the knob's level, about a hundredth
@@ -134,6 +136,12 @@ You need:
   its first tenth of a second. At the top of the knob there is no capture at all. The app is back to
   its own level when TheeJ quits, or when no profile gives it a knob. It needs a TheeJ signed with a
   certificate, as the release is: macOS gives an ad hoc build silence without asking.
+- **Focused app** (macOS 14.2 or later): the volume of the app in front, the same way. An app keeps
+  its level when another comes to the front, until TheeJ quits or no profile has Focused app. With
+  TheeJ in front, the knob does nothing.
+- **Other apps** (macOS 14.2 or later): the volume of every other app in the Dock, the same way, as
+  deej's `deej.unmapped`. That leaves out the apps a knob of a board's active profile names and the
+  ones Focused app has turned, which have volumes of their own.
 - **Built-in display brightness**: the Retina panel, through DisplayServices.
 - **Built-in display contrast**: the Accessibility "Display contrast" setting, normal at the bottom
   of the knob and maximum at the top. External screens ignore it.
@@ -154,8 +162,8 @@ You need:
   outside. Several displays zoom as one picture. Quitting TheeJ zooms back out. Use it or
   Accessibility Zoom, not both at once.
 
-The volumes follow the knob as it turns. Everything else waits for the knob to settle, as described
-under On-screen feedback.
+The volumes follow the knob as it turns, but for System sounds, which is only heard when an alert plays.
+Everything else waits for the knob to settle, as described under On-screen feedback.
 
 ## What a button can do
 
@@ -205,7 +213,8 @@ small Swift app that speaks the same serial protocol and drives macOS instead.
   buttons.
 - The **output and input volume** go through CoreAudio, in-process, with no `osascript`, and follow
   whichever devices are current.
-- **Each app's volume** goes through Core Audio process taps (macOS 14.2).
+- **Each app's volume** goes through Core Audio process taps (macOS 14.2), and the **alert volume**
+  through AppleScript's Standard Additions, run in TheeJ itself.
 - **External screens** go over DDC/CI through m1ddc. Screens are identified by their CoreGraphics
   UUID and ordered by on-screen position, so two identical panels stay left and right.
 - The **built-in display**, **Night Shift**, the **MacBook keyboard** and **screen zoom** go through
@@ -284,20 +293,20 @@ the controls stay where they are. Draw or List sticks per board.
 a profile from such a file, or from deej's `config.yaml`. Jobs land on the same controls, and buttons
 only come from the same type of board. From Windows, apps and the buttons that open or close an app or
 press keys stay behind, since they name Windows programs and keys, as does Stop, which a Mac has no key
-for. From deej, master, mic and monitor
-brightness come in, each on the knob or fader that reads its slider, or on a MIDI board the one at its
-place. A line under the toolbar says what was left out.
+for. From deej, master, mic, monitor brightness, `system` as System sounds, `deej.current` as Focused
+app and `deej.unmapped` as Other apps come in, each on the knob or fader that reads its slider, or on a
+MIDI board the one at its place. A line under the toolbar says what was left out.
 
 A knob's or fader's menu holds the jobs under [What a knob or fader can do](#what-a-knob-or-fader-can-do),
 each under the header of its section: Volume, Brightness, Contrast, Night Shift, Keyboard backlight,
 Zoom or Apps. Clicking a job ticks it and clicking it again unticks it, so one control can do several
-at once, of any kind, and Clear at the top unticks them all. Apps lists the apps that make sound: the
-ones playing right now, the well-known players, browsers and call apps you have installed, open or not,
-and any app a profile already uses. Other… at its end picks any app from Applications. Brightness and
-Contrast list one Screen per external screen plugged in, counted left to right by their position in
-System Settings, plus any a profile already uses while it is unplugged. A button's menu holds the
-actions under [What a button can do](#what-a-button-can-do); one that needs a setting, such as a website
-or the keys to press, asks for it beside the button's name.
+at once, of any kind, and Clear at the top unticks them all. Apps starts with Focused app and Other apps,
+then lists the apps that make sound: the ones playing right now, the well-known players, browsers and
+call apps you have installed, open or not, and any app a profile already uses. Other… at its end picks
+any app from Applications. Brightness and Contrast list one Screen per external screen plugged in,
+counted left to right by their position in System Settings, plus any a profile already uses while it is
+unplugged. A button's menu holds the under [What a button can do](#what-a-button-can-do); one that needs a setting, such as a website or the
+keys to press, asks for it beside the button's name.
 
 Those jobs and actions belong to a **profile**, which also has a name and an optional keyboard
 shortcut. Each board has its own. Switch profiles from the menu bar, with a button, or with a
@@ -347,9 +356,9 @@ only raises that HUD from its media key handler, so TheeJ asks for it directly o
 The HUD tracks the knob live. Everything but the volumes only changes once the knob has been still
 for a moment, so a turn lands as one clean change when you let go instead of flickering the panel
 through every position on the way. The volumes follow the knob immediately. macOS has no icon
-for a microphone, contrast, Night Shift, zoom or an app, so for those TheeJ draws the same square
-itself, with a microphone, a half-filled circle, a moon and a magnifying glass from SF Symbols, and
-the app's own icon. If the
+for a microphone, the alert volume, contrast, Night Shift, zoom or an app, so for those TheeJ draws the
+same square itself, with a microphone, a bell, a half-filled circle, a moon, a magnifying glass and a
+stack for Other apps from SF Symbols, and the app's own icon, the one in front for Focused app. If the
 HUD ever stops working it is ignored: the change itself still happens.
 
 </details>

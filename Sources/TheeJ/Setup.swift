@@ -7,6 +7,7 @@ import AppKit
 enum Target: Hashable, Codable {
     case master
     case microphone
+    case systemSounds  // the alert volume
     case builtinBrightness
     case builtinContrast
     case nightShift
@@ -17,6 +18,8 @@ enum Target: Hashable, Codable {
     case externalKeyboard
     case zoom  // the whole screen's magnification
     case app(String)  // one app's volume, by bundle identifier
+    case focusedApp  // the frontmost app's volume
+    case otherApps  // the volume of every app that has none of its own
 }
 
 // Knobs as saved before profiles, each with its own job. Only read, to make the first board.
@@ -174,6 +177,8 @@ struct Setup: Equatable {
 
     var apps: Set<String> { Set(boards.flatMap(\.apps)) }
 
+    var jobs: Set<Target> { Set(boards.flatMap(\.profiles).flatMap(\.jobs).joined()) }
+
     // JSON strings rather than data, so `defaults read com.zolfer.theej` is readable. The keys from before
     // boards (columns, profiles, knobs, profile, nextProfile, previousProfile, invertKnobs, speed) are read
     // once, to make the first board, and never written, so TheeJ 1.8 still finds its own after a downgrade.
@@ -248,6 +253,7 @@ func rank(_ target: Target) -> Int {
     switch target {
     case .master: return 0
     case .microphone: return 1
+    case .systemSounds: return 2
     case .builtinBrightness: return 100
     case .brightness(let ordinal): return 101 + ordinal
     case .builtinContrast: return 200
@@ -256,7 +262,9 @@ func rank(_ target: Target) -> Int {
     case .builtinKeyboard: return 400
     case .externalKeyboard: return 401
     case .zoom: return 500
-    case .app: return 600  // all the same: Settings lists them by name
+    case .focusedApp: return 600
+    case .otherApps: return 601
+    case .app: return 602  // all the same: Settings lists them by name
     }
 }
 
@@ -270,6 +278,7 @@ func title(_ target: Target?) -> String {
     case nil: return tr("job.nothing")
     case .master?: return tr("job.master")
     case .microphone?: return tr("job.microphone")
+    case .systemSounds?: return tr("job.system_sounds")
     case .builtinBrightness?: return tr("job.builtin_brightness")
     case .builtinContrast?: return tr("job.builtin_contrast")
     case .nightShift?: return tr("job.night_shift")
@@ -279,6 +288,8 @@ func title(_ target: Target?) -> String {
     case .externalKeyboard?: return tr("job.external_keyboard")
     case .zoom?: return tr("job.zoom")
     case .app(let id)?: return appName(id)
+    case .focusedApp?: return tr("job.focused_app")
+    case .otherApps?: return tr("job.other_apps")
     }
 }
 
@@ -289,7 +300,7 @@ func section(_ target: Target) -> String {
 // A job's name under its section's header, which says the rest of title().
 func shortTitle(_ target: Target) -> String {
     switch target {
-    case .master, .microphone, .zoom: return title(target)
+    case .master, .microphone, .systemSounds, .zoom, .focusedApp, .otherApps: return title(target)
     case .builtinBrightness, .builtinContrast: return tr("short.builtin_display")
     case .brightness(let ordinal), .contrast(let ordinal): return tr("short.screen", ["n": ordinal + 1])
     case .nightShift: return tr("short.warmth")

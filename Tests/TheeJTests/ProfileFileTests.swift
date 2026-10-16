@@ -42,18 +42,19 @@ noise_reduction: default
     let (profile, skipped) = try #require(importedProfile(Data(deejFixture.utf8), for: desk))
     #expect(profile.name == "deej" && profile.jobs.count == 7)
     #expect(profile.jobs[6] == [.master] && profile.jobs[3] == [.brightness(0)] && profile.jobs[4] == [.brightness(1)])
-    #expect(profile.jobs.joined().count == 3)
+    #expect(profile.jobs[2] == [.otherApps] && profile.jobs.joined().count == 4)
     #expect(skipped == ["cs2.exe", "rocketleague.exe", "roblox.exe", "steam.exe", "steamwebhelper.exe", "steamservice.exe",
-                        "vlc.exe", "deej.unmapped", "chrome.exe", "brave.exe", "firefox.exe", "opera.exe", "edge.exe",
+                        "vlc.exe", "chrome.exe", "brave.exe", "firefox.exe", "opera.exe", "edge.exe",
                         "msedge.exe", "spotify.exe", "FxSound.exe"])
 }
 
 @Test func deejSlidersGoByPlaceOnAMixer() throws {
     let yaml = "\u{FEFF}# my mixer\r\nslider_mapping:\r\n  0:\r\n    - master   # main\r\n    - Headset Microphone (Realtek)\r\n    -\r\n"
-        + "  \"1\": [mic, 'monitor 2 (brightness)', Mic]\r\n  20: master\r\n  x: master\r\ninvert_sliders: false\r\n"
+        + "  \"1\": [mic, 'monitor 2 (brightness)', Mic]\r\n  2: [System, deej.current]\r\n  20: master\r\n  x: master\r\ninvert_sliders: false\r\n"
     let smc = Board.make(id: "d1", name: "SMC", type: .smc, profileName: "Default")
     let (profile, skipped) = try #require(importedProfile(Data(yaml.utf8), for: smc))
-    #expect(profile.jobs[0] == [.master] && profile.jobs[1] == [.microphone, .brightness(1)] && profile.jobs.joined().count == 3)
+    #expect(profile.jobs[0] == [.master] && profile.jobs[1] == [.microphone, .brightness(1)] && profile.jobs[2] == [.systemSounds, .focusedApp])
+    #expect(profile.jobs.joined().count == 5)
     #expect(skipped == ["Headset Microphone (Realtek)", "slider 20", "x"])
     #expect(profile.buttons == smcDefaultButtons)
 }
@@ -67,7 +68,8 @@ noise_reduction: default
 
 @Test func anExportedProfileComesBackTheSame() throws {
     var desk = Board.make(id: "d1", name: "Desk", type: .diy, knobs: 3, buttons: 1, profileName: "Music")
-    desk.profile.jobs = [[.master, .app("com.spotify.client")], [.builtinContrast, .brightness(1)], [.builtinKeyboard], []]
+    desk.profile.jobs = [[.master, .app("com.spotify.client")], [.builtinContrast, .brightness(1)],
+                         [.builtinKeyboard, .systemSounds, .focusedApp, .otherApps], []]
     desk.profile.buttons = [3: ["media.playpause", keysAction(Shortcut(keyCode: 0, modifiers: 1 << 20, key: "a")), "open:com.apple.Safari"]]
     desk.profile.shortcut = Shortcut(keyCode: 18, modifiers: 1 << 20, key: "1")
     let data = try #require(profileFile(desk.profile, of: desk))
@@ -81,7 +83,8 @@ noise_reduction: default
     #expect(file["platform"] as? String == "macos")
     let saved = try #require(file["profile"] as? [String: Any])
     let jobs = try #require(saved["jobs"] as? [[[String: Any]]])
-    #expect(jobs.map { $0.map { $0["kind"] as? String } } == [["master"], ["brightness"], [], []] && jobs[1][0]["screen"] as? Int == 1)
+    #expect(jobs.map { $0.map { $0["kind"] as? String } } == [["master"], ["brightness"], ["systemSounds", "focusedApp", "otherApps"], []])
+    #expect(jobs[1][0]["screen"] as? Int == 1)
     #expect(saved["shortcut"] == nil && (saved["buttons"] as? [String: [String]])?["3"]?.count == 3)
 }
 
@@ -100,16 +103,17 @@ func aWindowsProfileLeavesItsAppsAndKeysBehind(platform: String) throws {
     let smc = Board.make(id: "d1", name: "SMC", type: .smc, profileName: "Default")
     let (profile, skipped) = try #require(importedProfile(Data(weej.utf8), for: smc))
     #expect(profile.name == "Games" && profile.jobs.count == 16)
-    #expect(profile.jobs[0] == [.master] && profile.jobs[1] == [.nightShift] && profile.jobs[2] == [.brightness(0)] && profile.jobs[3].isEmpty)
+    #expect(profile.jobs[0] == [.master, .systemSounds] && profile.jobs[1] == [.nightShift] && profile.jobs[2] == [.brightness(0)])
+    #expect(profile.jobs[3].isEmpty)
     #expect(profile.buttons == [noteButton(16): ["mute:0"], noteButton(46): ["media.playpause"]])
-    #expect(skipped == ["System sounds", "spotify.exe", "brightness", "M1: Open an app", "Previous bank: Press a shortcut",
+    #expect(skipped == ["spotify.exe", "brightness", "M1: Open an app", "Previous bank: Press a shortcut",
                         "Previous bank: Stop"])
 
     // From another type of board only the jobs come, by control.
     let desk = Board.make(id: "d2", name: "Desk", type: .diy, knobs: 2, buttons: 1, profileName: "Default")
     let (deskProfile, deskSkipped) = try #require(importedProfile(Data(weej.utf8), for: desk))
-    #expect(deskProfile.jobs == [[.master], [.nightShift], []] && deskProfile.buttons.isEmpty)
-    #expect(deskSkipped == ["System sounds", "spotify.exe", "Screen 1 brightness"])
+    #expect(deskProfile.jobs == [[.master, .systemSounds], [.nightShift], []] && deskProfile.buttons.isEmpty)
+    #expect(deskSkipped == ["spotify.exe", "Screen 1 brightness"])
 }
 
 @Test func controlsMoveBetweenRows() {

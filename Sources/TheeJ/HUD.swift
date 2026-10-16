@@ -9,16 +9,19 @@ import AppKit
 }
 
 // ponytail: the three tunables. 1, 3 and 11 are the long-standing BezelServices graphic ids: sun,
-// speaker and keyboard backlight. There is none for a microphone, contrast, Night Shift, zoom or a
-// profile switch, so those get TheeJ's own HUD with the SF Symbols below. totalChiclets sets the bar resolution: 100 fills
-// smoothly on the modern slider style, 16 gives the classic segmented look.
+// speaker and keyboard backlight. There is none for a microphone, the alert volume, contrast, Night Shift,
+// zoom, other apps or a profile switch, so those get TheeJ's own HUD with the SF Symbols below.
+// totalChiclets sets the bar resolution: 100 fills smoothly on the modern slider style, 16 gives the
+// classic segmented look.
 let osdBrightnessImage: Int64 = 1
 let osdVolumeImage: Int64 = 3
 let osdKeyboardImage: Int64 = 11
 let hudMicrophone = "mic.fill"
+let hudSystemSounds = "bell.fill"
 let hudContrast = "circle.lefthalf.filled"
 let hudNightShift = "moon.fill"
 let hudZoom = "plus.magnifyingglass"
+let hudOtherApps = "square.stack.3d.up.fill"
 let hudProfile = "slider.vertical.3"  // the General tab's, where profiles are edited
 
 // A job's HUD graphic at a menu item's size, for a knob's menu and its list of jobs: the app's icon for
@@ -31,11 +34,14 @@ func jobIcon(_ target: Target, tint: NSColor? = nil) -> NSImage? {
     case .app: return menuIcon(target)
     case .master: name = "speaker.wave.3.fill"
     case .microphone: name = hudMicrophone
+    case .systemSounds: name = hudSystemSounds
     case .builtinBrightness, .brightness: name = "sun.max.fill"
     case .builtinContrast, .contrast: name = hudContrast
     case .nightShift: name = hudNightShift
     case .builtinKeyboard, .externalKeyboard: name = "light.max"
     case .zoom: name = hudZoom
+    case .focusedApp: name = "macwindow"
+    case .otherApps: name = hudOtherApps
     }
     return NSImage(systemSymbolName: name, accessibilityDescription: nil).map { squareIcon($0, tint: tint) }
 }

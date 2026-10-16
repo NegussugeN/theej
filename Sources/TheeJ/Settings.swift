@@ -758,8 +758,8 @@ extension MenuBar: NSToolbarDelegate {
         startBoards()
         refresh()
         reloadDraft()
-        keepAppVolumes(for: draft.apps)
-        if !draft.apps.isEmpty { askForAudioCapture() }
+        keepAppVolumes(for: draft)
+        if !draft.apps.isEmpty || !draft.jobs.isDisjoint(with: [.focusedApp, .otherApps]) { askForAudioCapture() }
         askForKeyAccess()
     }
 }
