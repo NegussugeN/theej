@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "Предыдущий трек",
         "action.screens_off": "Выключить экраны",
         "action.sleep": "Спящий режим",
+        "action.stop": "Стоп",
         "action.volume_down": "Тише",
         "action.volume_up": "Громче",
         "add.add": "Добавить",

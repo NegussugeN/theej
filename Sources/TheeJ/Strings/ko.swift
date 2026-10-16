@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "이전 트랙",
         "action.screens_off": "화면 끄기",
         "action.sleep": "절전",
+        "action.stop": "정지",
         "action.volume_down": "볼륨 낮추기",
         "action.volume_up": "볼륨 높이기",
         "add.add": "추가",

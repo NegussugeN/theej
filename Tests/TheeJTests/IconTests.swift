@@ -11,6 +11,12 @@ func menuBarIconFollowsTheMenuBar(style: IconStyle, parked: Bool) {
     #expect(ink(icon, .aqua) < 0.5 && ink(icon, .darkAqua) > 0.5)
 }
 
+// The profile HUD shows where the profile sits as WeeJ's does: dots up to 9 profiles, then "n/m", and nothing for one.
+@Test func profileHUDCountsAsWeeJDoes() {
+    #expect(profilePlace(0, of: 1) == (0, nil) && profilePlace(1, of: 2) == (2, nil) && profilePlace(8, of: 9) == (9, nil))
+    #expect(profilePlace(1, of: 10) == (0, "2/10"))
+}
+
 // The colour of the icon's most opaque pixel, drawn under `appearance`.
 private func ink(_ icon: NSImage, _ appearance: NSAppearance.Name) -> CGFloat {
     let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(icon.size.width), pixelsHigh: Int(icon.size.height),

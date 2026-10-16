@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "Piste précédente",
         "action.screens_off": "Éteindre les écrans",
         "action.sleep": "Mettre en veille",
+        "action.stop": "Arrêt",
         "action.volume_down": "Volume -",
         "action.volume_up": "Volume +",
         "add.add": "Ajouter",

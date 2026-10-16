@@ -60,12 +60,15 @@ private func fileJob(_ job: Target) -> FileJob? {
     switch job {
     case .master: return FileJob(kind: "master")
     case .microphone: return FileJob(kind: "microphone")
+    case .systemSounds: return FileJob(kind: "systemSounds")
     case .builtinBrightness: return FileJob(kind: "builtinBrightness")
     case .brightness(let screen): return FileJob(kind: "brightness", screen: screen)
     case .contrast(let screen): return FileJob(kind: "contrast", screen: screen)
     case .nightShift: return FileJob(kind: "nightLight")
     case .externalKeyboard: return FileJob(kind: "externalKeyboard")
     case .zoom: return FileJob(kind: "zoom")
+    case .focusedApp: return FileJob(kind: "focusedApp")
+    case .otherApps: return FileJob(kind: "otherApps")
     case .builtinContrast, .builtinKeyboard, .app: return nil
     }
 }
@@ -77,12 +80,15 @@ private func target(_ job: FileJob) -> Target? {
     switch job.kind {
     case "master": return .master
     case "microphone": return .microphone
+    case "systemSounds": return .systemSounds
     case "builtinBrightness": return .builtinBrightness
     case "brightness": return screen(job.screen).map(Target.brightness)
     case "contrast": return screen(job.screen).map(Target.contrast)
     case "nightLight": return .nightShift
     case "externalKeyboard": return .externalKeyboard
     case "zoom": return .zoom
+    case "focusedApp": return .focusedApp
+    case "otherApps": return .otherApps
     default: return nil
     }
 }
@@ -118,6 +124,7 @@ func importedProfile(_ data: Data, for board: Board) -> (profile: Profile, skipp
 private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [String]) {
     var profile = board.newProfile(file.profile.name)
     var skipped: [String] = []
+    // TheeJ has always written "macos", so a file with no platform is WeeJ's, from before it wrote "windows".
     let mac = file.platform == "macos"
     for control in profile.jobs.indices {
         if mac, let jobs = file.theej {
@@ -128,8 +135,7 @@ private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [Str
             if let target = target(job) {
                 if !profile.jobs[control].contains(target) { profile.jobs[control].append(target) }
             } else {
-                let names = ["systemSounds": "job.system_sounds", "focusedApp": "job.focused_app", "otherApps": "job.other_apps"]
-                skipped.append(job.exe ?? names[job.kind].map { tr($0) } ?? job.kind)
+                skipped.append(job.exe ?? job.kind)
             }
         }
     }
@@ -141,8 +147,8 @@ private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [Str
     guard file.type == board.type.rawValue else { return (profile, skipped) }
     profile.buttons = file.profile.buttons
     guard !mac else { return (profile, skipped) }
-    // Another system names its apps and keys its own way.
-    let kinds = ["open:": "action.open_app", "close:": "action.close_app", "keys:": "action.keys"]
+    // Another system names its apps and keys its own way, and a Mac has no key that stops playing.
+    let kinds = ["open:": "action.open_app", "close:": "action.close_app", "keys:": "action.keys", "media.stop": "action.stop"]
     for key in profile.buttons.keys.sorted() {
         let name = board.control(ofKey: key).map(board.controlName) ?? String(key)
         for action in profile.buttons[key] ?? [] {
@@ -155,9 +161,9 @@ private func fileProfile(_ file: ImportFile, for board: Board) -> (Profile, [Str
     return (profile, skipped)
 }
 
-// deej's slider_mapping, as WeeJ imports it: each slider's master volume, mic and screen brightness go to the
-// knob or fader on that input of a DIY board, or at that place on any other. Its apps are Windows' or Linux's
-// process names, which name no Mac app, so they are skipped with the rest.
+// deej's slider_mapping, as WeeJ imports it: each slider's jobs go to the knob or fader on that input of a DIY
+// board, or at that place on any other. Its apps are Windows' or Linux's process names, which name no Mac app,
+// so they are skipped with the rest.
 private func deejProfile(_ data: Data, for board: Board) -> (Profile, [String])? {
     var text = String(decoding: data, as: UTF8.self)
     if text.first == "\u{FEFF}" { text.removeFirst() }
@@ -194,6 +200,9 @@ private func deejJob(_ entry: String) -> Target? {
     let name = entry.lowercased()
     if name == "master" { return .master }
     if name == "mic" { return .microphone }
+    if name == "system" { return .systemSounds }
+    if name == "deej.current" { return .focusedApp }
+    if name == "deej.unmapped" { return .otherApps }
     // "monitor 1 (brightness)", screen 1 being the first
     guard name.hasPrefix("monitor"), name.hasSuffix("(brightness)") else { return nil }
     let middle = name.dropFirst(7).dropLast(12)

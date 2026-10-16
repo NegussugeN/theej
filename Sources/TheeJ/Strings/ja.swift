@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "前のトラック",
         "action.screens_off": "画面をオフにする",
         "action.sleep": "スリープ",
+        "action.stop": "停止",
         "action.volume_down": "音量を下げる",
         "action.volume_up": "音量を上げる",
         "add.add": "追加",

@@ -1,5 +1,6 @@
 #if canImport(AppKit)
 import AppKit
+import ServiceManagement
 import Carbon.HIToolbox
 import UniformTypeIdentifiers
 
@@ -203,7 +204,9 @@ extension MenuBar: NSToolbarDelegate {
             control.target = self
             control.action = #selector(toggleOption)
         }
-        for toggle in [showIcon, showName, showProfiles] { toggle.controlSize = .mini }
+        for toggle in [showIcon, showName, showProfiles, launchAtLogin] { toggle.controlSize = .mini }
+        launchAtLogin.target = self
+        launchAtLogin.action = #selector(toggleLoginSwitch)
         iconPicker.isBordered = false
         iconPicker.removeAllItems()
         for style in IconStyle.allCases {
@@ -223,7 +226,7 @@ extension MenuBar: NSToolbarDelegate {
         let appRows = NSStackView()
         let appGroup = group(appRows)
         let m1ddc = isAppleSilicon ? [m1ddcRow()] : []  // m1ddc runs on Apple Silicon only
-        setRows(appRows, [row([label(tr("language"))], languagePicker)] + m1ddc)
+        setRows(appRows, [row([label(tr("language"))], languagePicker), row([label(tr("login"))], launchAtLogin)] + m1ddc)
         let menuBarRows = NSStackView()
         let menuBarGroup = group(menuBarRows)
         setRows(menuBarRows, [row([label(tr("show_icon"), note: tr("hide_icon_note"))], showIcon),
@@ -508,6 +511,7 @@ extension MenuBar: NSToolbarDelegate {
         showName.state = draft.showName ? .on : .off
         showProfiles.state = draft.showProfiles ? .on : .off
         showIcon.state = draft.hideIcon ? .off : .on
+        showLogin()
         iconPicker.selectItem(at: IconStyle.allCases.firstIndex(of: draft.icon) ?? 0)
         dimMenuBarOptions()
         reloadBoards()
@@ -613,6 +617,18 @@ extension MenuBar: NSToolbarDelegate {
     func dimApply() {
         let saved = shared.config().setup
         for button in applyButtons { button.isEnabled = draft != saved }
+    }
+
+    // Launch at login is the system's login item, not a setting, so it changes at once, as in the menu, and
+    // only the copy in Applications can register it.
+    func showLogin() {
+        launchAtLogin.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        launchAtLogin.isEnabled = Bundle.main.bundlePath.hasPrefix("/Applications/")
+    }
+
+    @objc func toggleLoginSwitch() {
+        toggleLogin()
+        showLogin()
     }
 
     @objc func toggleOption() {
@@ -758,8 +774,8 @@ extension MenuBar: NSToolbarDelegate {
         startBoards()
         refresh()
         reloadDraft()
-        keepAppVolumes(for: draft.apps)
-        if !draft.apps.isEmpty { askForAudioCapture() }
+        keepAppVolumes(for: draft)
+        if !draft.apps.isEmpty || !draft.jobs.isDisjoint(with: [.focusedApp, .otherApps]) { askForAudioCapture() }
         askForKeyAccess()
     }
 }

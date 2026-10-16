@@ -323,6 +323,15 @@ private func tendSound() {
 
 // MARK: Every app with a knob
 
+// Where Other apps keeps its volume among the apps', since no bundle identifier is empty.
+let otherAppsKey = ""
+
+// The frontmost app, unless it is TheeJ, whose sound is every tapped app's played back.
+func focusedApp() -> String? {
+    guard let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier != getpid() else { return nil }
+    return app.bundleIdentifier
+}
+
 private var appGains: [String: Float32] = [:]
 private var appTaps: [String: AppTap] = [:]
 private var lastPlayed: [String: Date] = [:]
@@ -344,12 +353,32 @@ func setAppVolume(_ app: String, _ scalar: Float32) {
 // waits for appQueue, which can be busy making a tap.
 func appLevel(_ app: String) -> Float32 { appLevels[app] ?? 1 }
 
-// On Apply: an app no profile gives a knob any more goes back to its own volume.
-func keepAppVolumes(for apps: Set<String>) {
+// On Apply: an app no profile gives a knob any more goes back to its own volume, as do the other apps once
+// no profile has Other apps, and the apps Focused app turned once no profile has Focused app.
+func keepAppVolumes(for setup: Setup) {
+    let jobs = setup.jobs
+    let apps = setup.apps.union(jobs.contains(.otherApps) ? [otherAppsKey] : [])
+    let focused = jobs.contains(.focusedApp)
     appQueue.async {
-        appGains = appGains.filter { apps.contains($0.key) }
+        appGains = appGains.filter { apps.contains($0.key) || focused && $0.key != otherAppsKey }
         tendApps()
     }
+}
+
+// The processes of Other apps: those of the apps in the Dock that have no volume of their own, neither a
+// knob's nor a job in a profile in use, so no sound is ever tapped twice. Never TheeJ's.
+private func otherProcesses(_ processes: [AudioObjectID]) -> Set<AudioObjectID> {
+    let used = shared.config().setup.boards.filter(\.enabled).flatMap { $0.profile.jobs.joined() }.compactMap { job -> String? in
+        if case .app(let id) = job { return id }
+        return nil
+    }
+    let own = Set(appGains.keys).subtracting([otherAppsKey]).union(used)
+    let docked = Set(NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.processIdentifier != getpid() }
+        .compactMap(\.bundleIdentifier))
+    return Set(processes.filter { process in
+        let (bundle, owner) = info(process)
+        return docked.contains(owner ?? bundle) && !own.contains { belongs(bundle: bundle, owner: owner, to: $0) }
+    })
 }
 
 // Ten times a second while any app is turned down, and at once when a knob turns. An app that is turned
@@ -379,7 +408,8 @@ private func tendApps() {
             appTaps[app] = nil
             continue
         }
-        let mine = Set(processes.filter { belongs(bundle: info($0).bundle, owner: info($0).owner, to: app) })
+        let mine = app == otherAppsKey ? otherProcesses(processes)
+            : Set(processes.filter { belongs(bundle: info($0).bundle, owner: info($0).owner, to: app) })
         guard !mine.isEmpty else {
             appTaps[app] = nil
             continue

@@ -29,6 +29,7 @@ extension Strings {
         "action.previous_track": "上一曲",
         "action.screens_off": "关闭屏幕",
         "action.sleep": "睡眠",
+        "action.stop": "停止",
         "action.volume_down": "调低音量",
         "action.volume_up": "调高音量",
         "add.add": "添加",

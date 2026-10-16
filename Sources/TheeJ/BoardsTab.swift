@@ -454,7 +454,6 @@ extension MenuBar {
                  into: picks).tag = i
         }
         guard apps else { return }
-        if !choices.contains(where: { rank($0) == 600 }) { pickHead(tr("section.apps"), into: picks) }
         let other = NSButton(title: tr("other"), target: self, action: #selector(pickOtherApp))
         let line = NSStackView(views: [other])
         line.edgeInsets = NSEdgeInsets(top: 6, left: 12, bottom: 10, right: 12)
@@ -737,8 +736,8 @@ extension MenuBar {
             apps = draft.apps.union(known).union(appsPlayingSound()).subtracting([Bundle.main.bundleIdentifier ?? ""])
                 .map(Target.app).sorted { title($0).localizedStandardCompare(title($1)) == .orderedAscending }
         }
-        let fixed: [Target] = [.master, .microphone, .builtinBrightness, .builtinContrast, .nightShift, .builtinKeyboard,
-                               .externalKeyboard, .zoom]
+        let fixed: [Target] = [.master, .microphone, .systemSounds, .builtinBrightness, .builtinContrast, .nightShift,
+                               .builtinKeyboard, .externalKeyboard, .zoom] + (appsAvailable ? [.focusedApp, .otherApps] : [])
         return ((fixed + monitors).sorted { rank($0) < rank($1) } + apps, appsAvailable)
     }
 
@@ -775,7 +774,7 @@ extension MenuBar {
             item?.state = jobs.contains(choice) ? .on : .off
         }
         if apps {
-            popup.menu?.addItem(choices.contains { rank($0) == 600 } ? .separator() : .sectionHeader(title: tr("section.apps")))
+            popup.menu?.addItem(.separator())
             popup.menu?.addItem(withTitle: tr("other"), action: nil, keyEquivalent: "").representedObject = otherApp
         }
         popup.setAccessibilityValue(title(jobs))

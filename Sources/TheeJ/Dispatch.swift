@@ -139,6 +139,11 @@ func applyJobs(_ jobs: [Target], _ scalar: Float32, _ settle: Double, _ shown: i
         case .microphone:
             setVolume(scalar, input: true)
             once(on: CGMainDisplayID()) { showHUD(hudMicrophone, on: CGMainDisplayID(), scalar) }
+        case .systemSounds:
+            // Nothing is heard until an alert plays, so it waits for the knob like a screen, and AppleScript
+            // isn't run for every step of a turn.
+            debounce(target, on: .main, after: settle) { setAlertVolume(scalar) }
+            once(on: CGMainDisplayID()) { showHUD(hudSystemSounds, on: CGMainDisplayID(), scalar) }
         case .builtinBrightness:
             if let id = builtinDisplayID() {
                 // Main, not ddcQueue, so a stuck m1ddc can never hold the built-in up.
@@ -183,6 +188,14 @@ func applyJobs(_ jobs: [Target], _ scalar: Float32, _ settle: Double, _ shown: i
         case .app(let id):
             setAppVolume(id, scalar)
             once(on: CGMainDisplayID()) { showHUD(on: CGMainDisplayID(), scalar) { appIcon(id) } }
+        case .focusedApp:
+            if let id = focusedApp() {
+                setAppVolume(id, scalar)
+                once(on: CGMainDisplayID()) { showHUD(on: CGMainDisplayID(), scalar) { appIcon(id) } }
+            }
+        case .otherApps:
+            setAppVolume(otherAppsKey, scalar)
+            once(on: CGMainDisplayID()) { showHUD(hudOtherApps, on: CGMainDisplayID(), scalar) }
         }
     }
 }
@@ -214,6 +227,8 @@ func level(of job: Target) -> Float32? {
     case .master: return volume()
     case .microphone: return volume(input: true)
     case .app(let id): return appLevel(id)
+    case .focusedApp: return focusedApp().map(appLevel)
+    case .otherApps: return appLevel(otherAppsKey)
     default: return nil
     }
 }

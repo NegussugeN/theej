@@ -18,8 +18,9 @@ private let english: Void = UserDefaults.standard.set("en", forKey: "language")
 }
 
 // The rank bands must stay distinct as target kinds are added.
-private let every: [Target] = [.master, .microphone, .builtinBrightness, .builtinContrast, .nightShift]
-    + (0..<16).flatMap { [.brightness($0), .contrast($0)] } + [.builtinKeyboard, .externalKeyboard, .zoom, .app("com.apple.Music")]
+private let every: [Target] = [.master, .microphone, .systemSounds, .builtinBrightness, .builtinContrast, .nightShift]
+    + (0..<16).flatMap { [.brightness($0), .contrast($0)] }
+    + [.builtinKeyboard, .externalKeyboard, .zoom, .focusedApp, .otherApps, .app("com.apple.Music")]
 
 @Test func everyTargetHasItsOwnRank() {
     #expect(Set(every.map(rank)).count == every.count)

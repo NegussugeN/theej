@@ -9,16 +9,19 @@ import AppKit
 }
 
 // ponytail: the three tunables. 1, 3 and 11 are the long-standing BezelServices graphic ids: sun,
-// speaker and keyboard backlight. There is none for a microphone, contrast, Night Shift, zoom or a
-// profile switch, so those get TheeJ's own HUD with the SF Symbols below. totalChiclets sets the bar resolution: 100 fills
-// smoothly on the modern slider style, 16 gives the classic segmented look.
+// speaker and keyboard backlight. There is none for a microphone, the alert volume, contrast, Night Shift,
+// zoom, other apps or a profile switch, so those get TheeJ's own HUD with the SF Symbols below.
+// totalChiclets sets the bar resolution: 100 fills smoothly on the modern slider style, 16 gives the
+// classic segmented look.
 let osdBrightnessImage: Int64 = 1
 let osdVolumeImage: Int64 = 3
 let osdKeyboardImage: Int64 = 11
 let hudMicrophone = "mic.fill"
+let hudSystemSounds = "bell.fill"
 let hudContrast = "circle.lefthalf.filled"
 let hudNightShift = "moon.fill"
 let hudZoom = "plus.magnifyingglass"
+let hudOtherApps = "square.stack.3d.up.fill"
 let hudProfile = "slider.vertical.3"  // the General tab's, where profiles are edited
 
 // A job's HUD graphic at a menu item's size, for a knob's menu and its list of jobs: the app's icon for
@@ -31,11 +34,14 @@ func jobIcon(_ target: Target, tint: NSColor? = nil) -> NSImage? {
     case .app: return menuIcon(target)
     case .master: name = "speaker.wave.3.fill"
     case .microphone: name = hudMicrophone
+    case .systemSounds: name = hudSystemSounds
     case .builtinBrightness, .brightness: name = "sun.max.fill"
     case .builtinContrast, .contrast: name = hudContrast
     case .nightShift: name = hudNightShift
     case .builtinKeyboard, .externalKeyboard: name = "light.max"
     case .zoom: name = hudZoom
+    case .focusedApp: name = "macwindow"
+    case .otherApps: name = hudOtherApps
     }
     return NSImage(systemSymbolName: name, accessibilityDescription: nil).map { squareIcon($0, tint: tint) }
 }
@@ -94,21 +100,37 @@ func showOSD(_ image: Int64, on displayID: CGDirectDisplayID, _ scalar: Float32)
     DispatchQueue.main.async { hudShown += 1; hud?.window.orderOut(nil) }
 }
 
+// Where a profile sits among its board's, as WeeJ shows it: a dot per profile, up to the 9 that can be
+// counted at a glance, then "2/12" in their place. Neither for a board with one profile.
+func profilePlace(_ index: Int, of count: Int) -> (dots: Int, text: String?) {
+    count > 9 ? (0, "\(index + 1)/\(count)") : (count > 1 ? count : 0, nil)
+}
+
 // OSDUIHelper only draws its own graphics, so the jobs it has none for draw its square themselves:
 // the measurements BiHan Brightness took from it at 2x, with an SF Symbol for the graphic.
 final class HUDView: NSView {
     var symbol: NSImage?
     var scalar: Float32 = 0
     var text: String?  // a profile's name, in the bar's place
+    var place = (index: 0, count: 0)  // the profile's, under its name
     override var isFlipped: Bool { true }
     override func draw(_ dirtyRect: NSRect) {
         if let text {
             let style = NSMutableParagraphStyle()
             style.alignment = .center
             style.lineBreakMode = .byTruncatingTail
-            text.draw(in: NSRect(x: 12, y: 162, width: 176, height: 24),
+            let (dots, fraction) = profilePlace(place.index, of: place.count)
+            text.draw(in: NSRect(x: 12, y: dots > 0 || fraction != nil ? 148 : 162, width: 176, height: 24),
                       withAttributes: [.font: NSFont.systemFont(ofSize: 17, weight: .semibold),
                                        .foregroundColor: NSColor.labelColor, .paragraphStyle: style])
+            // The profile's dot in the bar's colour, and the others faint, as WeeJ's.
+            for dot in 0..<dots {
+                (dot == place.index ? hudInk : NSColor(white: 1, alpha: 0.2)).setFill()
+                NSBezierPath(ovalIn: NSRect(x: 104 - CGFloat(dots * 7) + CGFloat(dot * 14), y: 179, width: 6, height: 6)).fill()
+            }
+            fraction?.draw(in: NSRect(x: 12, y: 174, width: 176, height: 18),
+                           withAttributes: [.font: NSFont.systemFont(ofSize: 13, weight: .medium),
+                                            .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: style])
         } else {
             NSColor(white: 0, alpha: 0.25).setFill()
             NSRect(x: 21, y: 173, width: 159, height: 6).fill()
@@ -160,14 +182,16 @@ func makeHUD() -> (window: NSWindow, view: HUDView) {
     return (window, view)
 }
 
-func showHUD(_ symbol: String, on displayID: CGDirectDisplayID, _ scalar: Float32, text: String? = nil) {
-    showHUD(on: displayID, scalar, text: text) {
+func showHUD(_ symbol: String, on displayID: CGDirectDisplayID, _ scalar: Float32, text: String? = nil,
+             place: (index: Int, count: Int) = (0, 0)) {
+    showHUD(on: displayID, scalar, text: text, place: place) {
         NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?.withSymbolConfiguration(hudSymbolStyle)
     }
 }
 
 // Called from the serial thread, like showOSD. The image is made on the main thread.
-func showHUD(on displayID: CGDirectDisplayID, _ scalar: Float32, text: String? = nil, image: @escaping () -> NSImage?) {
+func showHUD(on displayID: CGDirectDisplayID, _ scalar: Float32, text: String? = nil, place: (index: Int, count: Int) = (0, 0),
+             image: @escaping () -> NSImage?) {
     DispatchQueue.main.async {
         guard let screen = NSScreen.screens.first(where: {
             $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID == displayID
@@ -179,6 +203,7 @@ func showHUD(on displayID: CGDirectDisplayID, _ scalar: Float32, text: String? =
         view.symbol = image()
         view.scalar = scalar
         view.text = text
+        view.place = place
         view.needsDisplay = true
         window.setFrameOrigin(NSPoint(x: screen.frame.midX - 100, y: screen.frame.minY + 140))
         window.alphaValue = 1

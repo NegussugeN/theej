@@ -36,6 +36,7 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
     let boardRows = NSStackView()
     let showName = NSSwitch()
     let showIcon = NSSwitch()  // on while the icon shows: setup.hideIcon the other way round
+    let launchAtLogin = NSSwitch()
     let showNameLabel = NSTextField(labelWithString: "")  // these three are dimmed with the icon hidden
     let showProfiles = NSSwitch()
     let profileListLabel = NSTextField(labelWithString: "")
@@ -321,7 +322,7 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
         shared.setSetup(setup)
         refresh()
         let name = setup.boards.count > 1 ? "\(first.name) · \(first.profile.name)" : first.profile.name
-        showHUD(hudProfile, on: pointerDisplayID(), 0, text: name)
+        showHUD(hudProfile, on: pointerDisplayID(), 0, text: name, place: (first.active, first.profiles.count))
         if settingsWindow?.isVisible == true { reloadDraft() }
     }
 
