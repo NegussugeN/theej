@@ -311,12 +311,13 @@ keys to press, asks for it beside the button's name.
 Those jobs and actions belong to a **profile**, which also has a name and an optional keyboard
 shortcut. Each board has its own. Switch profiles from the menu bar, with a button, or with a
 shortcut from any app, and the new profile's name shows on screen, in a square like the HUD's, with
-the board's name when you have several. Next profile and Previous profile step through a board's
-profiles in order, wrapping round at either end. One shortcut may switch several boards at once:
-Settings says which other boards use it. To set a shortcut, click Record Shortcut and press it; it
-needs ⌘ or ⌃, can't be one this board or another app already uses, which the button says, and Escape
-cancels. The ✕ after a shortcut removes it, as does Delete while recording. Shortcuts need no
-Accessibility or Input Monitoring permission.
+the board's name when you have several. Under it, as in WeeJ, a dot per profile of the board marks
+where this one sits, or past 9 profiles a count such as 2/12. Next profile and Previous profile step
+through a board's profiles in order, wrapping round at either end. One shortcut may switch several
+boards at once: Settings says which other boards use it. To set a shortcut, click Record Shortcut and
+press it; it needs ⌘ or ⌃, can't be one this board or another app already uses, which the button says,
+and Escape cancels. The ✕ after a shortcut removes it, as does Delete while recording. Shortcuts need
+no Accessibility or Input Monitoring permission.
 
 **About** shows the version, with Check for updates…, and links to the website, to zolfer.com, to WeeJ, TheeJ for Windows, and to deej.
 
