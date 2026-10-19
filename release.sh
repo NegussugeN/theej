@@ -98,8 +98,6 @@ echo "Release ready: $DMG"
   loc=$(curl -fsS -o /dev/null -w '%{redirect_url}' --data-urlencode "url=https://theej.zolfer.com/$NAME-$VERSION.dmg" https://url.zolfer.com/dmg)
   echo "Download link: https://url.zolfer.com/${loc##*c=}"
 }
-# Casks/theej.rb always installs releases/latest/download/TheeJ.dmg, so every release carries a copy under that name.
-cp "$DMG" "dist/$NAME.dmg"
 # The apps learn the newest version from releases/latest/download/latest.json, the same file the website serves.
 printf '{"version": "%s"}\n' "$VERSION" > dist/latest.json
-gh release create "v$VERSION" "$DMG" "dist/$NAME.dmg" dist/latest.json -R zolferfigueiredo/theej --target "$(git rev-parse HEAD)" --title "$NAME $VERSION" --generate-notes
+gh release create "v$VERSION" "$DMG" dist/latest.json -R zolferfigueiredo/theej --target "$(git rev-parse HEAD)" --title "$NAME $VERSION" --generate-notes
