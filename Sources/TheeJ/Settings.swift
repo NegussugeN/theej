@@ -213,6 +213,7 @@ extension MenuBar: NSToolbarDelegate {
             iconPicker.addItem(withTitle: style.title)
             iconPicker.lastItem?.image = makeIcon(style, parked: false, side: 16)
         }
+        if let menu = iconPicker.menu { showImages(menu) }
         // Each language is named in itself, so it can always be found.
         languagePicker.isBordered = false
         languagePicker.removeAllItems()

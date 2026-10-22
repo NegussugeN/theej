@@ -778,6 +778,7 @@ extension MenuBar {
             popup.menu?.addItem(withTitle: tr("other"), action: nil, keyEquivalent: "").representedObject = otherApp
         }
         popup.setAccessibilityValue(title(jobs))
+        if let menu = popup.menu { showImages(menu) }
         return popup
     }
 
@@ -807,6 +808,7 @@ extension MenuBar {
                 item?.state = kinds.contains(actionKind(action)) ? .on : .off
             }
         }
+        if let menu = popup.menu { showImages(menu) }
         return popup
     }
 
