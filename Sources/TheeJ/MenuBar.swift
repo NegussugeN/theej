@@ -18,6 +18,16 @@ final class EditingWindow: NSWindow {
     }
 }
 
+// macOS 27 hides menu item images unless an item asks to show its own (preferredImageVisibility = .visible, 1).
+// Set by key, as the macOS 26 SDK has no such property.
+func showImages(_ menu: NSMenu) {
+    guard #available(macOS 27, *) else { return }
+    for item in menu.items {
+        if item.image != nil { item.setValue(1, forKey: "preferredImageVisibility") }
+        if let submenu = item.submenu { showImages(submenu) }
+    }
+}
+
 final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate, NSTextFieldDelegate {
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let menu = NSMenu()  // a right click's, lent to the item only while it opens
@@ -214,6 +224,7 @@ final class MenuBar: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDe
         menu.addItem(auto)
         menu.addItem(.separator())
         menu.addItem(entry(tr("quit"), #selector(quit), "q", symbol: "xmark.square"))
+        showImages(menu)
     }
 
     // No levels here: nothing calls this as they change, so they would be stale. The icon is parked while no
