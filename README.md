@@ -392,9 +392,11 @@ brew install m1ddc
 ```
 
 `run.sh` quits any running TheeJ, builds with `build.sh --fast` (a debug build for this Mac, without
-the tests) and runs the new build in the terminal,
-where it prints live slider values so you can see which physical slider is which index. Its first
-run also turns on the repository's git hook, which refuses commits made directly on `main`.
+the tests) and opens the new build with its output in the terminal,
+where it prints live slider values so you can see which physical slider is which index. It is opened
+by macOS rather than run by the terminal, so macOS asks whether TheeJ may record audio, not the
+terminal. Its first run also turns on the repository's git hook, which refuses commits made directly
+on `main`.
 `build.sh` runs the tests (`swift test`), then produces `.build/TheeJ.app`, a universal app for
 Apple silicon and Intel, signed with your Apple Development certificate when you have one, so Login
 Items shows TheeJ by name and icon. Without one it is signed ad hoc.
