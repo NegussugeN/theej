@@ -134,6 +134,7 @@ func applyJobs(_ jobs: [Target], _ scalar: Float32, _ settle: Double, _ shown: i
     for target in jobs {
         switch target {
         case .master:
+            setMuted(false)
             setVolume(scalar)
             once(on: CGMainDisplayID()) { showOSD(osdVolumeImage, on: CGMainDisplayID(), scalar) }
         case .microphone:
