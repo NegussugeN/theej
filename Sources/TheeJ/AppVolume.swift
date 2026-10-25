@@ -5,7 +5,7 @@ import CoreAudio
 // A knob sets one app's volume by capturing the app's audio with a Core Audio process tap (macOS 14.2)
 // and playing it back at the knob's level. The tap mutes the app's own output, so everything it plays
 // comes through here. macOS shows its recording indicator while a tap is read, so a tap is read only
-// while its app plays, and at full volume there is no tap at all. Taps die with TheeJ, which unmutes.
+// while its app plays. Taps die with TheeJ, which unmutes.
 
 // Everything here runs on this queue, never on the serial thread: making a tap takes a while.
 let appQueue = DispatchQueue(label: "theej.apps")
@@ -381,15 +381,15 @@ private func otherProcesses(_ processes: [AudioObjectID]) -> Set<AudioObjectID> 
     })
 }
 
-// Ten times a second while any app is turned down, and at once when a knob turns. An app that is turned
-// down and has audio processes gets a tap, which is read only while the app plays.
+// Ten times a second while any app has a volume set, and at once when a knob turns. An app that has
+// a volume set and audio processes gets a tap, which is read only while the app plays.
 // ponytail: a sound loses up to this tick's 0.1 s at its start, since playing is noticed by polling (the
 // listener for it doesn't fire on macOS 26). Swapping a tap, when the app's processes or the output
 // device change, is a cut and not a crossfade. No watchdog for a tap that goes silent on its own.
 private func tendApps() {
     let now = Date()
-    let turnedDown = appGains.filter { $0.value < 1 }
-    if turnedDown.isEmpty {
+    let activeApps = appGains
+    if activeApps.isEmpty {
         appTimer?.cancel()
         appTimer = nil
     } else if appTimer == nil {
@@ -399,12 +399,12 @@ private func tendApps() {
         timer.resume()
         appTimer = timer
     }
-    let allowed = !turnedDown.isEmpty && audioCaptureAllowed()
+    let allowed = !activeApps.isEmpty && audioCaptureAllowed()
     let processes = allowed ? readList(system, kAudioHardwarePropertyProcessObjectList) : []
     processInfo = processInfo.filter { processes.contains($0.key) }
     let output = defaultDevice(input: false)
-    for app in Set(appTaps.keys).union(turnedDown.keys) {
-        guard allowed, let gain = turnedDown[app], (retryAfter[app] ?? .distantPast) <= now else {
+    for app in Set(appTaps.keys).union(activeApps.keys) {
+        guard allowed, let gain = activeApps[app], (retryAfter[app] ?? .distantPast) <= now else {
             appTaps[app] = nil
             continue
         }
